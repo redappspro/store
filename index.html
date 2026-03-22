@@ -37,11 +37,43 @@
             pointer-events: none; animation: pulse-glow 6s ease-in-out infinite;
         }
         .container { width: 100%; max-width: 720px; padding: 32px 16px 100px; position: relative; z-index: 1; }
-        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; animation: fade-in 0.6s ease both; }
+        
+        .header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 36px; 
+            animation: fade-in 0.6s ease both; 
+        }
+        .header-left { display: flex; align-items: center; gap: 14px; }
         .logo-icon { width: 52px; height: 52px; color: var(--accent); filter: drop-shadow(0 0 12px rgba(0, 180, 255, 0.4)); animation: float 3s ease-in-out infinite; }
         .header-title { font-size: 28px; font-weight: 700; font-family: 'Clash Display', sans-serif; }
         .header-subtitle { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1.5px; text-transform: uppercase; }
-        
+
+        .btn-refresh {
+            background: rgba(0, 180, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .btn-refresh:hover {
+            background: rgba(0, 180, 255, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 180, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
         .search-box { 
             display: flex; align-items: center; 
             background: rgba(0, 180, 255, 0.05); 
@@ -74,26 +106,24 @@
         }
         .btn:hover { opacity: 0.9; transform: scale(1.02); }
         .no-results { text-align: center; padding: 48px; color: var(--text-secondary); }
-
-        /* Bouton de mise à jour discret */
-        #update-trigger {
-            position: fixed; bottom: 20px; right: 20px; opacity: 0.2;
-            background: none; border: none; color: var(--text-tertiary);
-            cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 5px;
-            transition: 0.3s; z-index: 100;
-        }
-        #update-trigger:hover { opacity: 1; color: var(--accent); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <i data-lucide="download-cloud" class="logo-icon"></i>
-        <div>
-            <div class="header-title">APK STORE</div>
-            <div class="header-subtitle">Téléchargez vos applications</div>
+        <div class="header-left">
+            <i data-lucide="download-cloud" class="logo-icon"></i>
+            <div>
+                <div class="header-title">APK STORE</div>
+                <div class="header-subtitle">Téléchargez vos applications</div>
+            </div>
         </div>
+        
+        <button class="btn-refresh" onclick="forceRefresh()">
+            <i data-lucide="refresh-cw" size="16"></i>
+            <span>Actualiser</span>
+        </button>
     </div>
 
     <div class="search-box">
@@ -104,15 +134,11 @@
     <div id="app-list"></div>
 </div>
 
-<button id="update-trigger" onclick="forceRefresh()">
-    <i data-lucide="refresh-cw" size="12"></i> Actualiser
-</button>
-
 <script>
     const USER = "redappspro";
     const REPO = "store";
     const CACHE_KEY = "apk_store_data";
-    const CACHE_TIME = 5 * 60 * 1000; // Cache de 5 minutes
+    const CACHE_TIME = 20 * 60 * 1000; // CACHE AUGMENTÉ À 20 MINUTES
 
     const fixUrl = url => (url.includes("github.com") && !url.includes("raw")) ? url + (url.includes("?") ? "&" : "?") + "raw=true" : url;
     
@@ -124,23 +150,23 @@
     const clean = md => md?.replace(/!\[.*?\]\(.*?\)/g,'').replace(/<img[^>]*>/g,'').replace(/[#>*-]/g,'').replace(/\n/g,' ').trim();
 
     async function forceRefresh() {
+        const btn = document.querySelector('.btn-refresh');
+        btn.style.opacity = "0.5";
+        btn.querySelector('span').innerText = "Mise à jour...";
         localStorage.removeItem(CACHE_KEY);
-        location.reload();
+        setTimeout(() => location.reload(), 500);
     }
 
     async function getApps() {
         const container = document.getElementById('app-list');
         const cached = localStorage.getItem(CACHE_KEY);
 
-        // Affiche le cache immédiatement s'il existe
         if (cached) {
             const { timestamp, data } = JSON.parse(cached);
             render(data);
-            // Si le cache a moins de 5 minutes, on s'arrête là
             if (Date.now() - timestamp < CACHE_TIME) return;
         }
 
-        // Sinon (ou si cache expiré), on interroge GitHub
         try {
             const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/releases?t=${Date.now()}`);
             if (res.ok) {
@@ -152,15 +178,13 @@
                 render(releases);
             }
         } catch (e) {
-            if (!cached) container.innerHTML = '<div class="no-results">Erreur de connexion au store</div>';
+            if (!cached) container.innerHTML = '<div class="no-results">Erreur de connexion</div>';
         }
     }
 
     function render(releases) {
         const container = document.getElementById('app-list');
         container.innerHTML = '';
-        
-        // Tri par date (plus récent en premier)
         releases.sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
 
         let hasApps = false;
@@ -193,13 +217,10 @@
             container.appendChild(div);
         });
 
-        if (!hasApps) {
-            container.innerHTML = '<div class="no-results">Aucune application trouvée.</div>';
-        }
+        if (!hasApps) container.innerHTML = '<div class="no-results">Aucune application trouvée.</div>';
         lucide.createIcons();
     }
 
-    // Filtrage de recherche
     document.getElementById('search').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.item').forEach(el => {
@@ -207,9 +228,7 @@
         });
     });
 
-    // Lancement
     getApps();
 </script>
-
 </body>
 </html>
