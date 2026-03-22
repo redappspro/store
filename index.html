@@ -41,8 +41,16 @@
         .logo-icon { width: 52px; height: 52px; color: var(--accent); filter: drop-shadow(0 0 12px rgba(0, 180, 255, 0.4)); animation: float 3s ease-in-out infinite; }
         .header-title { font-size: 28px; font-weight: 700; font-family: 'Clash Display', sans-serif; }
         .header-subtitle { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1.5px; text-transform: uppercase; }
-        .search-box { display: flex; align-items: center; background: rgba(0, 180, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 16px; margin-bottom: 32px; }
-        #search { flex: 1; background: transparent; border: none; color: white; outline: none; margin-left: 8px; }
+        
+        .search-box { 
+            display: flex; align-items: center; 
+            background: rgba(0, 180, 255, 0.05); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid var(--border-color); 
+            border-radius: 14px; padding: 12px 16px; margin-bottom: 32px; 
+        }
+        #search { flex: 1; background: transparent; border: none; color: white; outline: none; margin-left: 8px; font-size: 15px; }
+        
         #app-list { display: flex; flex-direction: column; gap: 14px; }
         .item { 
             background: linear-gradient(135deg, rgba(0, 180, 255, 0.08) 0%, rgba(0, 180, 255, 0.03) 100%); 
@@ -56,13 +64,25 @@
         .name { font-size: 16px; font-weight: 600; }
         .tag { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; }
         .desc { font-size: 13px; color: var(--text-secondary); margin-top: 8px; line-height: 1.5; }
+        
         .btn { 
             background: linear-gradient(135deg, var(--accent), var(--accent-dark)); 
             color: white; text-decoration: none; padding: 10px 18px; border-radius: 10px; 
             font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; 
             gap: 6px; float: right; margin-top: 10px; text-transform: uppercase;
+            transition: 0.2s;
         }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
         .no-results { text-align: center; padding: 48px; color: var(--text-secondary); }
+
+        /* Bouton de mise à jour discret */
+        #update-trigger {
+            position: fixed; bottom: 20px; right: 20px; opacity: 0.2;
+            background: none; border: none; color: var(--text-tertiary);
+            cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 5px;
+            transition: 0.3s; z-index: 100;
+        }
+        #update-trigger:hover { opacity: 1; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -84,41 +104,55 @@
     <div id="app-list"></div>
 </div>
 
+<button id="update-trigger" onclick="forceRefresh()">
+    <i data-lucide="refresh-cw" size="12"></i> Actualiser
+</button>
+
 <script>
     const USER = "redappspro";
     const REPO = "store";
     const CACHE_KEY = "apk_store_data";
-    const CACHE_TIME = 60 * 60 * 1000; // 1 heure
+    const CACHE_TIME = 5 * 60 * 1000; // Cache de 5 minutes
 
     const fixUrl = url => (url.includes("github.com") && !url.includes("raw")) ? url + (url.includes("?") ? "&" : "?") + "raw=true" : url;
+    
     const extractImage = md => {
         const match = md?.match(/!\[.*?\]\((.*?)\)/) || md?.match(/<img[^>]+src="([^">]+)"/);
         return match ? fixUrl(match[1]) : null;
     };
+
     const clean = md => md?.replace(/!\[.*?\]\(.*?\)/g,'').replace(/<img[^>]*>/g,'').replace(/[#>*-]/g,'').replace(/\n/g,' ').trim();
+
+    async function forceRefresh() {
+        localStorage.removeItem(CACHE_KEY);
+        location.reload();
+    }
 
     async function getApps() {
         const container = document.getElementById('app-list');
         const cached = localStorage.getItem(CACHE_KEY);
 
-        // Tentative de chargement du cache
+        // Affiche le cache immédiatement s'il existe
         if (cached) {
             const { timestamp, data } = JSON.parse(cached);
             render(data);
-            // Si le cache est récent, on s'arrête là
+            // Si le cache a moins de 5 minutes, on s'arrête là
             if (Date.now() - timestamp < CACHE_TIME) return;
         }
 
-        // Mise à jour silencieuse via l'API
+        // Sinon (ou si cache expiré), on interroge GitHub
         try {
-            const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/releases`);
+            const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/releases?t=${Date.now()}`);
             if (res.ok) {
                 const releases = await res.json();
-                localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: releases }));
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ 
+                    timestamp: Date.now(), 
+                    data: releases 
+                }));
                 render(releases);
             }
         } catch (e) {
-            if (!cached) container.innerHTML = '<div class="no-results">Erreur de connexion</div>';
+            if (!cached) container.innerHTML = '<div class="no-results">Erreur de connexion au store</div>';
         }
     }
 
@@ -126,11 +160,14 @@
         const container = document.getElementById('app-list');
         container.innerHTML = '';
         
+        // Tri par date (plus récent en premier)
         releases.sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
 
+        let hasApps = false;
         releases.forEach((rel, i) => {
             const asset = rel.assets.find(a => a.name.endsWith('.apk'));
             if (!asset) return;
+            hasApps = true;
 
             const img = extractImage(rel.body);
             const desc = clean(rel.body)?.substring(0, 85);
@@ -141,13 +178,13 @@
             div.dataset.name = rel.name.toLowerCase();
             div.innerHTML = `
                 <div class="top">
-                    ${img ? `<img src="${img}" class="icon">` : '<div class="icon"></div>'}
+                    ${img ? `<img src="${img}" class="icon" onerror="this.style.display='none'">` : '<div class="icon"></div>'}
                     <div class="info">
                         <div class="name">${rel.name}</div>
                         <div class="tag">${rel.tag_name}</div>
                     </div>
                 </div>
-                ${desc ? `<div class="desc">${desc}</div>` : ''}
+                ${desc ? `<div class="desc">${desc}...</div>` : ''}
                 <a href="${asset.browser_download_url}" class="btn">
                     <i data-lucide="download" size="14"></i> Télécharger
                 </a>
@@ -155,9 +192,14 @@
             `;
             container.appendChild(div);
         });
+
+        if (!hasApps) {
+            container.innerHTML = '<div class="no-results">Aucune application trouvée.</div>';
+        }
         lucide.createIcons();
     }
 
+    // Filtrage de recherche
     document.getElementById('search').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         document.querySelectorAll('.item').forEach(el => {
@@ -165,7 +207,9 @@
         });
     });
 
+    // Lancement
     getApps();
 </script>
+
 </body>
 </html>
