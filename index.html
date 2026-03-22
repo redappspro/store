@@ -1,319 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>APK STORE</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
-
-<style>
-*{
-  box-sizing: border-box;
-}
-
-:root{
-  --card:rgba(255,255,255,0.06);
-  --border:rgba(255,255,255,0.10);
-  --dim:#9aa0b0;
-  --accent:#7c3aed;
-}
-
-body{
-  margin:0;
-  font-family:'Inter',sans-serif;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  background:#000;
-}
-
-.container{
-  width:100%;
-  max-width:700px;
-  padding:60px 20px 80px;
-}
-
-/* HEADER */
-.header{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:12px;
-  margin-bottom:30px;
-}
-
-.logo{
-  width:60px;
-  filter:drop-shadow(0 0 8px rgba(124,58,237,0.3));
-}
-
-.logo-text{
-  height:28px;
-}
-
-/* INPUT */
-input{
-  width:100%;
-  padding:16px 18px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,0.06);
-  color:white;
-  outline:none;
-  margin-bottom:40px;
-  font-size:14px;
-}
-
-/* GLOBAL FOCUS */
-:focus{
-  outline:2px solid var(--accent);
-  outline-offset:2px;
-}
-
-/* LIST */
-#app-list{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
-/* ITEM */
-.item{
-  width:100%;
-  border-radius:18px;
-  background:var(--card);
-  border:1px solid var(--border);
-  padding:18px;
-  position:relative;
-  transition:.2s ease;
-}
-
-.item:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(124,58,237,0.25);
-  transform:translateY(-2px);
-}
-
-/* TOP */
-.top{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:10px;
-}
-
-.icon{
-  width:48px;
-  height:48px;
-  border-radius:12px;
-  object-fit:cover;
-  background:#111;
-  border:1px solid var(--border);
-}
-
-.info{
-  display:flex;
-  flex-direction:column;
-}
-
-.name{
-  font-size:17px;
-  font-weight:600;
-}
-
-.tag{
-  font-size:11px;
-  color:var(--dim);
-}
-
-.desc{
-  font-size:13px;
-  color:#cbd5e1;
-  margin-top:10px;
-  margin-bottom:38px;
-  line-height:1.4;
-}
-
-/* BUTTON */
-.btn{
-  position:absolute;
-  bottom:18px;
-  right:18px;
-  background:linear-gradient(135deg, #7c3aed, #6d28d9);
-  color:white;
-  font-size:11px;
-  padding:10px 16px;
-  border-radius:10px;
-  font-weight:600;
-  text-decoration:none;
-  transition:.2s ease;
-  box-shadow:0 4px 15px rgba(124,58,237,0.3);
-}
-
-/* BUTTON STATES */
-.btn:hover{
-  transform:scale(1.05);
-  opacity:0.95;
-}
-
-.btn:active{
-  transform:scale(0.96);
-}
-
-.btn:focus{
-  outline:2px solid white;
-  outline-offset:2px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK STORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --accent: #00b4ff;
+            --accent-dark: #0088cc;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #141b2e;
+            --surface-glass: rgba(0, 180, 255, 0.08);
+            --border-color: rgba(0, 180, 255, 0.15);
+            --border-hover: rgba(0, 180, 255, 0.25);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a9b8;
+            --text-tertiary: #6b7280;
+        }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-glow { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
+        
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #0a0e1a 0%, #141b2e 50%, #0d1219 100%);
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 15% 25%, rgba(0, 180, 255, 0.15) 0%, transparent 45%);
+            pointer-events: none; animation: pulse-glow 6s ease-in-out infinite;
+        }
+        .container { width: 100%; max-width: 720px; padding: 32px 16px 100px; position: relative; z-index: 1; }
+        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; animation: fade-in 0.6s ease both; }
+        .logo-icon { width: 52px; height: 52px; color: var(--accent); filter: drop-shadow(0 0 12px rgba(0, 180, 255, 0.4)); animation: float 3s ease-in-out infinite; }
+        .header-title { font-size: 28px; font-weight: 700; font-family: 'Clash Display', sans-serif; }
+        .header-subtitle { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1.5px; text-transform: uppercase; }
+        .search-box { display: flex; align-items: center; background: rgba(0, 180, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 16px; margin-bottom: 32px; }
+        #search { flex: 1; background: transparent; border: none; color: white; outline: none; margin-left: 8px; }
+        #app-list { display: flex; flex-direction: column; gap: 14px; }
+        .item { 
+            background: linear-gradient(135deg, rgba(0, 180, 255, 0.08) 0%, rgba(0, 180, 255, 0.03) 100%); 
+            border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; 
+            transition: 0.3s; animation: fade-in 0.5s ease both;
+        }
+        .item:hover { transform: translateY(-3px); border-color: var(--border-hover); background: rgba(0, 180, 255, 0.12); }
+        .top { display: flex; gap: 14px; align-items: flex-start; }
+        .icon { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; background: #1a2536; border: 1px solid var(--border-color); }
+        .info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .name { font-size: 16px; font-weight: 600; }
+        .tag { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+        .desc { font-size: 13px; color: var(--text-secondary); margin-top: 8px; line-height: 1.5; }
+        .btn { 
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark)); 
+            color: white; text-decoration: none; padding: 10px 18px; border-radius: 10px; 
+            font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; 
+            gap: 6px; float: right; margin-top: 10px; text-transform: uppercase;
+        }
+        .no-results { text-align: center; padding: 48px; color: var(--text-secondary); }
+    </style>
 </head>
-
 <body>
 
 <div class="container">
+    <div class="header">
+        <i data-lucide="download-cloud" class="logo-icon"></i>
+        <div>
+            <div class="header-title">APK STORE</div>
+            <div class="header-subtitle">Téléchargez vos applications</div>
+        </div>
+    </div>
 
-<!-- HEADER -->
-<div class="header">
-  <img class="logo"
-    src="https://static.vecteezy.com/system/resources/previews/060/306/075/non_2x/google-play-store-apk-download-free-png.png">
+    <div class="search-box">
+        <i data-lucide="search" size="18" style="color:var(--text-tertiary)"></i>
+        <input type="text" id="search" placeholder="Rechercher une application...">
+    </div>
 
-  <svg class="logo-text" viewBox="0 0 300 60">
-    <defs>
-      <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#7c3aed"/>
-        <stop offset="100%" stop-color="#6d28d9"/>
-      </linearGradient>
-    </defs>
-
-    <text x="0" y="40" font-size="32" font-weight="700" fill="url(#grad)">
-      APK STORE
-    </text>
-  </svg>
-</div>
-
-<input id="search" placeholder="RECHERCHER" onkeyup="filter()" autocomplete="off">
-
-<div id="app-list"></div>
-
+    <div id="app-list"></div>
 </div>
 
 <script>
-const USER="redappspro";
-const REPO="store";
+    const USER = "redappspro";
+    const REPO = "store";
+    const CACHE_KEY = "apk_store_data";
+    const CACHE_TIME = 60 * 60 * 1000; // 1 heure
 
-/* -------- HELPERS -------- */
+    const fixUrl = url => (url.includes("github.com") && !url.includes("raw")) ? url + (url.includes("?") ? "&" : "?") + "raw=true" : url;
+    const extractImage = md => {
+        const match = md?.match(/!\[.*?\]\((.*?)\)/) || md?.match(/<img[^>]+src="([^">]+)"/);
+        return match ? fixUrl(match[1]) : null;
+    };
+    const clean = md => md?.replace(/!\[.*?\]\(.*?\)/g,'').replace(/<img[^>]*>/g,'').replace(/[#>*-]/g,'').replace(/\n/g,' ').trim();
 
-function extractImage(md){
-  if(!md) return null;
+    async function getApps() {
+        const container = document.getElementById('app-list');
+        const cached = localStorage.getItem(CACHE_KEY);
 
-  let match = md.match(/!\[.*?\]\((.*?)\)/);
-  if(match) return fixUrl(match[1]);
+        // Tentative de chargement du cache
+        if (cached) {
+            const { timestamp, data } = JSON.parse(cached);
+            render(data);
+            // Si le cache est récent, on s'arrête là
+            if (Date.now() - timestamp < CACHE_TIME) return;
+        }
 
-  match = md.match(/<img[^>]+src="([^">]+)"/);
-  if(match) return fixUrl(match[1]);
-
-  return null;
-}
-
-function fixUrl(url){
-  if(url.includes("github.com") && !url.includes("raw")){
-    url += (url.includes("?") ? "&" : "?") + "raw=true";
-  }
-  return url;
-}
-
-function clean(md){
-  return md
-    ?.replace(/!\[.*?\]\(.*?\)/g,'')
-    .replace(/<img[^>]*>/g,'')
-    .replace(/[#>*-]/g,'')
-    .replace(/\n/g,' ')
-    .trim();
-}
-
-/* -------- LOAD -------- */
-
-async function getApps(){
-  const container=document.getElementById('app-list');
-
-  const res=await fetch(`https://api.github.com/repos/${USER}/${REPO}/releases`);
-  let releases=await res.json();
-
-  releases.sort((a,b)=>new Date(a.published_at)-new Date(b.published_at));
-
-  releases.forEach(release=>{
-    const asset=release.assets.find(a=>a.name.endsWith('.apk'));
-    if(!asset) return;
-
-    const img=extractImage(release.body);
-    const desc=clean(release.body)?.substring(0,80)||"";
-
-    const div=document.createElement('div');
-    div.className='item';
-    div.tabIndex=0;
-    div.dataset.name=(release.name||'').toLowerCase();
-
-    div.innerHTML=`
-      <div class="top">
-        ${img ? `<img class="icon" src="${img}">` : `<div class="icon"></div>`}
-
-        <div class="info">
-          <div class="name">${release.name}</div>
-          <div class="tag">${release.tag_name}</div>
-        </div>
-      </div>
-
-      ${desc ? `<div class="desc">${desc}</div>` : ''}
-
-      <a class="btn" href="${asset.browser_download_url}" target="_blank" tabindex="0" aria-label="Télécharger l'application">
-        Télécharger
-      </a>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-/* -------- SEARCH -------- */
-
-function filter(){
-  const val=document.getElementById('search').value.toLowerCase();
-  document.querySelectorAll('.item').forEach(el=>{
-    el.style.display=el.dataset.name.includes(val)?'block':'none';
-  });
-}
-
-/* -------- TV / KEYBOARD NAV -------- */
-
-document.addEventListener("keydown", (e) => {
-  const focusable = Array.from(document.querySelectorAll('input, .item, .btn'));
-  const index = focusable.indexOf(document.activeElement);
-
-  if(e.key === "ArrowDown"){
-    e.preventDefault();
-    const next = focusable[index + 1] || focusable[0];
-    next.focus();
-    next.scrollIntoView({behavior:"smooth", block:"center"});
-  }
-
-  if(e.key === "ArrowUp"){
-    e.preventDefault();
-    const prev = focusable[index - 1] || focusable[focusable.length - 1];
-    prev.focus();
-    prev.scrollIntoView({behavior:"smooth", block:"center"});
-  }
-
-  if(e.key === "Enter"){
-    if(document.activeElement.classList.contains("btn")){
-      document.activeElement.click();
+        // Mise à jour silencieuse via l'API
+        try {
+            const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/releases`);
+            if (res.ok) {
+                const releases = await res.json();
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: releases }));
+                render(releases);
+            }
+        } catch (e) {
+            if (!cached) container.innerHTML = '<div class="no-results">Erreur de connexion</div>';
+        }
     }
-  }
-});
 
-getApps();
+    function render(releases) {
+        const container = document.getElementById('app-list');
+        container.innerHTML = '';
+        
+        releases.sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
+
+        releases.forEach((rel, i) => {
+            const asset = rel.assets.find(a => a.name.endsWith('.apk'));
+            if (!asset) return;
+
+            const img = extractImage(rel.body);
+            const desc = clean(rel.body)?.substring(0, 85);
+
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.style.animationDelay = `${i * 0.05}s`;
+            div.dataset.name = rel.name.toLowerCase();
+            div.innerHTML = `
+                <div class="top">
+                    ${img ? `<img src="${img}" class="icon">` : '<div class="icon"></div>'}
+                    <div class="info">
+                        <div class="name">${rel.name}</div>
+                        <div class="tag">${rel.tag_name}</div>
+                    </div>
+                </div>
+                ${desc ? `<div class="desc">${desc}</div>` : ''}
+                <a href="${asset.browser_download_url}" class="btn">
+                    <i data-lucide="download" size="14"></i> Télécharger
+                </a>
+                <div style="clear:both"></div>
+            `;
+            container.appendChild(div);
+        });
+        lucide.createIcons();
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('.item').forEach(el => {
+            el.style.display = el.dataset.name.includes(val) ? 'block' : 'none';
+        });
+    });
+
+    getApps();
 </script>
-
 </body>
 </html>
